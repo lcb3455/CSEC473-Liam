@@ -6,11 +6,11 @@ import subprocess
 import tarfile
 from pathlib import Path
 
-PAM_BASE_URL = "https://github.com/linux-pam/linux-pam/releases/downloads/v{version}"
+PAM_BASE_URL = "https://github.com/linux-pam/linux-pam/releases/download/v{version}"
 
 def show_help():
     print("")
-    print("Example usage: script.py -v 1.3.0 -p some_s3cr3t_p455word")
+    print("Example usage: PAM.py -v 1.7.2 -p test")
     print("For a list of supported versions: https://github.com/linux-pam/linux-pam/releases")
 
 def run_cmd(cmd, cwd=None):
@@ -111,14 +111,6 @@ def main():
     pam_dir, pam_file = try_download(pam_version)
     extract_tarball(pam_file)
     build_pam(pam_dir)
-
-    print("")
-    print("No backdoor created. This script only:")
-    print("- parsed arguments")
-    print("- downloaded the PAM source")
-    print("- extracted it")
-    print("- optionally built it")
-    print("You now have a clean PAM source/build tree for analysis or defensive work.")
 
 if __name__ == "__main__":
     main()
