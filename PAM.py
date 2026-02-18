@@ -71,17 +71,17 @@ def build_pam(pam_dir: str):
     print("[+] Running make")
     run_cmd(["make"], cwd=str(pam_path))
 
-    print("[+] Build complete (no patching performed).")
+    print("[+] Build complete")
 
 def main():
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("-h", action="store_true")
     # parser.add_argument("-?", dest="qmark", action="store_true")
-    parser.add_argument("-v", dest="pam_version")
+    parser.add_argument("-v" "--version", required=True, type=str, help="PAM version")
     parser.add_argument("-p", dest="password")
     args = parser.parse_args()
 
-    version = args.pam_version
+    version = args.version.strip()
     password = args.password
     # args, unknown = parser.parse_known_args()
 
