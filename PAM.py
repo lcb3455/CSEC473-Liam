@@ -6,7 +6,7 @@ import subprocess
 import tarfile
 from pathlib import Path
 
-PAM_BASE_URL = "https://github.com/linux-pam/linux-pam/releases"
+PAM_BASE_URL = "https://github.com/linux-pam/linux-pam/releases/downloads/v{version}"
 
 def show_help():
     print("")
@@ -24,38 +24,28 @@ def download_file(url, dest):
     print(f"[+] Downloading {url} -> {dest}")
     run_cmd(["wget", "-c", url])
 
-def try_download_variants(version: str) -> tuple[str, str]:
-    """
-    Try the same filename/version patterns as the Bash script.
-    Returns (pam_dir, pam_file) on success.
-    """
-    # 1) Newer format: v${PAM_VERSION}.tar.gz, dir: linux-pam-${PAM_VERSION}
-    pam_dir = f"linux-pam-{version}"
-    pam_file = f"v{version}.tar.gz"
-    url = f"{PAM_BASE_URL}/{pam_file}"
-    try:
-        download_file(url, pam_file)
-        return pam_dir, pam_file
-    except RuntimeError:
-        print("[!] Failed first format, trying older formats...")
-
-    # 2) Older format: Linux-PAM-${PAM_VERSION}.tar.gz, dir: linux-pam-Linux-PAM-${PAM_VERSION}
-    pam_dir = f"linux-pam-Linux-PAM-{version}"
+def try_download(version):
+    # tar.gz format
+    # pam_dir = f"linux-pam-{version}"
     pam_file = f"Linux-PAM-{version}.tar.gz"
     url = f"{PAM_BASE_URL}/{pam_file}"
     try:
         download_file(url, pam_file)
+        pam_dir = f"Linux-PAM-{version}"
         return pam_dir, pam_file
     except RuntimeError:
-        print("[!] Failed second format, trying underscore version...")
+        print("tar.gz no work :( ")
 
-    # 3) Very old: version with dots replaced by underscores
-    version_underscore = version.replace(".", "_")
-    pam_dir = f"linux-pam-Linux-PAM-{version_underscore}"
-    pam_file = f"Linux-PAM-{version_underscore}.tar.gz"
+    # tar.xz format
+    # pam_dir = f"linux-pam-Linux-PAM-{version}"
+    pam_file = f"Linux-PAM-{version}.tar.xz"
     url = f"{PAM_BASE_URL}/{pam_file}"
-    download_file(url, pam_file)
-    return pam_dir, pam_file
+    try:
+        download_file(url, pam_file)
+        pam_dir = f"Linux-PAM-{version}"
+        return pam_dir, pam_file
+    except RuntimeError:
+        print("well thats not good uhhhh tar.xz no work gg")
 
 def extract_tarball(pam_file: str):
     print(f"[+] Extracting {pam_file}")
