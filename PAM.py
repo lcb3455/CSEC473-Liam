@@ -108,7 +108,7 @@ def main():
         print("Error: patch command not found. Exiting (mirroring original script behavior)...")
         raise SystemExit(1)
 
-    pam_dir, pam_file = try_download_variants(pam_version)
+    pam_dir, pam_file = try_download(pam_version)
     extract_tarball(pam_file)
     build_pam(pam_dir)
 
