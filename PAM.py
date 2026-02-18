@@ -47,9 +47,9 @@ def try_download(version):
     except RuntimeError:
         print("well thats not good uhhhh tar.xz no work gg")
 
-def extract_tarball(pam_file: str):
+def extract_tarball(pam_file):
     print(f"[+] Extracting {pam_file}")
-    with tarfile.open(pam_file, "r:gz") as tar:
+    with tarfile.open(pam_file, "r:*") as tar:
         tar.extractall()
 
 def build_pam(pam_dir: str):
