@@ -6,7 +6,7 @@ import subprocess
 import tarfile
 from pathlib import Path
 
-PAM_BASE_URL = "https://github.com/linux-pam/linux-pam/releases/download/v{version}"
+PAM_BASE_URL = f"https://github.com/linux-pam/linux-pam/releases/download/v{version}"
 
 def show_help():
     print("")
