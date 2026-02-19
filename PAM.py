@@ -8,11 +8,13 @@ from pathlib import Path
 
 # PAM_BASE_URL = f"https://github.com/linux-pam/linux-pam/releases/download/v{version}"
 
+#how to run
 def show_help():
     print("")
     print("Example usage: PAM.py -v 1.7.2 -p test")
     print("For a list of supported versions: https://github.com/linux-pam/linux-pam/releases")
 
+#runs things on command line
 def run_cmd(cmd, cwd=None):
     print(f"[+] Running: {' '.join(cmd)} (cwd={cwd or os.getcwd()})")
     result = subprocess.run(cmd, cwd=cwd)
@@ -20,10 +22,12 @@ def run_cmd(cmd, cwd=None):
         raise RuntimeError(f"Command failed: {' '.join(cmd)}")
     return result
 
+#downloads files
 def download_file(url, dest):
     print(f"[+] Downloading {url} -> {dest}")
     run_cmd(["wget", "-c", url])
 
+#attempts to download the correct type of file from the PAM GitHub page, which uses two formats .tar.gz and .tar.xz
 def try_download(version):
     # tar.gz format
     # pam_dir = f"linux-pam-{version}"
@@ -47,11 +51,12 @@ def try_download(version):
     except RuntimeError:
         print("well thats not good uhhhh tar.xz no work gg")
 
+# extracts/unpacks the source tree so that it can be changed in later steps
 def extract_tarball(pam_file):
     print(f"[+] Extracting {pam_file}")
     with tarfile.open(pam_file, "r:*") as tar:
         tar.extractall()
-
+# applies a patch that changes the PAM file, then configures, compiles, and installs the new changes to take effect
 def build_pam(pam_dir: str):
     script_dir = Path(__file__).parent
     patch_path = script_dir / "sneaky.patch"
