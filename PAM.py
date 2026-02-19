@@ -58,18 +58,27 @@ def build_pam(pam_dir: str):
         raise FileNotFoundError(f"{pam_dir} does not exist after extraction")
 
     # If ./configure does not exist, run ./autogen.sh
-    configure_path = pam_path / "configure"
-    if not configure_path.exists():
-        print("[+] ./configure not found, running ./autogen.sh")
-        run_cmd(["./autogen.sh"], cwd=str(pam_path))
+    # configure_path = pam_path / "configure"
+    # if not configure_path.exists():
+    #     print("[+] ./configure not found, running ./autogen.sh")
+    #     run_cmd(["./autogen.sh"], cwd=str(pam_path))
 
-    print("[+] Running ./configure")
-    run_cmd(["./configure"], cwd=str(pam_path))
+    # print("[+] Running ./configure")
+    # run_cmd(["./configure"], cwd=str(pam_path))
 
-    #FIGURE OUT HOW TO ACTUALLY WRITE THE PATCH
+    # print("[+] Running make")
+    # run_cmd(["make"], cwd=str(pam_path))
 
-    print("[+] Running make")
-    run_cmd(["make"], cwd=str(pam_path))
+    print("[+] Setting up meson")
+    run_cmd(["meson", "setup", "build"], cwd=str(pam_path))
+
+    print("[+] compilin")
+    run_cmd(["meson", "compile", "-C", "build"], cwd=str(pam_path))
+
+    print("[+] install")
+    run_cmd(["meson", "install", "-C", "build"], cwd=str(pam_path))
+
+    # #FIGURE OUT HOW TO ACTUALLY WRITE THE PATCH
 
     print("[+] Build complete")
 
