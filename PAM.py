@@ -77,7 +77,7 @@ def main():
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("-h", action="store_true")
     # parser.add_argument("-?", dest="qmark", action="store_true")
-    parser.add_argument("-v" "--version", required=True, type=str)
+    parser.add_argument("-v", "--version", required=True, type=str)
     parser.add_argument("-p", dest="password")
     args = parser.parse_args()
 
