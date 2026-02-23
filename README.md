@@ -9,3 +9,6 @@ Prior to running, make sure Meson is installed (not necessary with the Ansible p
 
 sudo apt update
 sudo apt install meson ninja-build build-essential
+
+
+dpkg -l | grep libpam
