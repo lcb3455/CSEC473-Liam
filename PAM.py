@@ -56,7 +56,7 @@ def fetch_debian_pam_source():
     run_cmd(["apt-get", "source", "libpam0g"])
     # Find the extracted directory
     for d in os.listdir("."):
-        if d.startswith("linux-pam-"):
+        if d.startswith("pam-") and os.path.isdir(d):
             return d
     raise RuntimeError("Debian PAM source not found")
 
