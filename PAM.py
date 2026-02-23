@@ -7,9 +7,12 @@ import tarfile
 from pathlib import Path
 
 PATCHES = {
-    "1.7.0": "sneaky-1.7.0.patch",
-    "1.6.0": "sneaky-1.6.0.patch",
-    "1.5.0": "sneaky-1.5.0.patch",
+    "1.7.0": "sneaky.patch",
+    "1.6.1": "sneaky.patch",
+    "1.6.0": "sneaky.patch",
+    "1.5.2": "sneaky.patch",
+    "1.5.1": "sneaky.patch",
+    "1.5.0": "sneaky.patch",
 }
 
 
