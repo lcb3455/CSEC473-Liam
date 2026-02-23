@@ -150,7 +150,7 @@ def main():
     parser.add_argument("-h", action="store_true")
     # parser.add_argument("-?", dest="qmark", action="store_true")
     parser.add_argument("-v", "--version", required=True, type=str)
-    parser.add_argument("-p", dest="password")
+    # parser.add_argument("-p", dest="password")
     args = parser.parse_args()
 
     system_ver_raw = get_system_pam_version()
@@ -176,12 +176,12 @@ def main():
         return
         
     # version = args.version.strip()
-    password = args.password
+    # password = args.password
     # args, unknown = parser.parse_known_args()
 
     print("Automatic Debian PAM Workflow")
     print(f"PAM Version: {version}")
-    print(f"Password: {password}")
+    # print(f"Password: {password}")
     print("")
 
     print("[+] Fetching Debian PAM source package...") 
