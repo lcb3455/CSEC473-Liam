@@ -14,6 +14,21 @@ def show_help():
     print("Example usage: PAM.py -v 1.7.2 -p test")
     print("For a list of supported versions: https://github.com/linux-pam/linux-pam/releases")
 
+#check installed pam version so i dont destroy systems
+def get_system_pam_version():
+    result = subprocess.run(
+        ["dpkg-query", "-W", "-f=${Version}", "libpam0g"],
+        capture_output=True, text=True
+    )
+    if result.returncode != 0:
+        return None
+    return result.stdout.strip()
+
+#me no like when -5 at the end
+def normalize_version(ver):
+    # "1.7.0-5" → "1.7.0"
+    return ver.split("-")[0]
+    
 #runs things on command line
 def run_cmd(cmd, cwd=None):
     print(f"[+] Running: {' '.join(cmd)} (cwd={cwd or os.getcwd()})")
@@ -101,6 +116,23 @@ def main():
     parser.add_argument("-p", dest="password")
     args = parser.parse_args()
 
+    system_ver_raw = get_system_pam_version()
+    if system_ver_raw:
+        system_ver = normalize_version(system_ver_raw)
+        print(f"[+] System PAM version detected: {system_ver_raw} (normalized: {system_ver})")
+
+        # If user-supplied version mismatches system version, override
+        if args.version.strip() != system_ver:
+            print(f"[!] WARNING: You requested PAM {args.version}, "
+                  f"but the system uses {system_ver}.")
+            print("[!] Using system version instead to avoid ABI mismatch.")
+            version = system_ver
+        else:
+            version = args.version.strip()
+    else:
+        print("[!] Could not detect system PAM version. Using user-supplied version.")
+        version = args.version.strip()
+    
     version = args.version.strip()
     password = args.password
     # args, unknown = parser.parse_known_args()
