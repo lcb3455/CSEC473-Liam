@@ -176,7 +176,7 @@ def main():
         return
         
     # version = args.version.strip()
-    # password = args.password
+    password = args.password
     # args, unknown = parser.parse_known_args()
 
     print("Automatic Debian PAM Workflow")
