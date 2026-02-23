@@ -152,7 +152,7 @@ def main():
         print(f"[!] No patch availible for PAM {version} exiting")
         return
         
-    version = args.version.strip()
+    # version = args.version.strip()
     password = args.password
     # args, unknown = parser.parse_known_args()
 
