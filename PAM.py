@@ -20,9 +20,7 @@ PATCHES = {
 
 #how to run
 def show_help():
-    print("")
-    print("Example usage: PAM.py -v 1.7.2 -p test")
-    print("For a list of supported versions: https://github.com/linux-pam/linux-pam/releases")
+    print("Example usage: PAM.py -v 1.7.0")
 
 #check installed pam version so i dont destroy systems
 def get_system_pam_version():
@@ -36,7 +34,6 @@ def get_system_pam_version():
 
 #me no like when -5 at the end
 def normalize_version(ver):
-    # "1.7.0-5" → "1.7.0"
     return ver.split("-")[0]
     
 #runs things on command line
@@ -48,9 +45,9 @@ def run_cmd(cmd, cwd=None):
     return result
 
 #downloads files
-def download_file(url, dest):
-    print(f"[+] Downloading {url} -> {dest}")
-    run_cmd(["wget", "-c", url])
+# def download_file(url, dest):
+#     print(f"[+] Downloading {url} -> {dest}")
+#     run_cmd(["wget", "-c", url])
 
 def fetch_debian_pam_source():
     run_cmd(["apt-get", "source", "libpam0g"])
@@ -85,22 +82,35 @@ def fetch_debian_pam_source():
 #         print("well thats not good uhhhh tar.xz no work gg")
 
 # extracts/unpacks the source tree so that it can be changed in later steps
-def extract_tarball(pam_file):
-    print(f"[+] Extracting {pam_file}")
-    with tarfile.open(pam_file, "r:*") as tar:
-        tar.extractall()
+# def extract_tarball(pam_file):
+#     print(f"[+] Extracting {pam_file}")
+#     with tarfile.open(pam_file, "r:*") as tar:
+#         tar.extractall()
 
-def build_debian_pam(pam_dir):
-    run_cmd(["sudo", "apt-get", "build-dep", "-y", "libpam0g"])
+def fetch_debian_pam_source(): 
+    run_cmd(["apt-get", "source", "libpam0g"]) 
+    for d in os.listdir("."): 
+        if d.startswith("pam-") and os.path.isdir(d): 
+            return d 
+    raise RuntimeError("Debian PAM source not found")
+
+def build_debian_pam(pam_dir): 
+    print("[+] Installing build dependencies...") 
+    run_cmd(["sudo", "apt-get", "build-dep", "-y", "libpam0g"]) 
+    print("[+] Building Debian packages...") 
     run_cmd(["dpkg-buildpackage", "-b", "-uc", "-us"], cwd=pam_dir)
 
-def install_built_packages():
-    for f in os.listdir(".."):
-        if f.startswith("libpam") and f.endswith(".deb"):
-            run_cmd(["sudo", "dpkg", "-i", f], cwd="..")
+def install_built_packages(pam_dir): 
+    parent = Path(pam_dir).parent 
+    print("[+] Installing built packages...") 
+    for f in parent.iterdir(): 
+        if f.name.startswith("libpam") and f.suffix == ".deb": 
+            run_cmd(["sudo", "dpkg", "-i", str(f)])
 
-def apply_patch(pam_dir, patch_file):
-    patch_path = Path(__file__).parent / patch_file
+def apply_patch(pam_dir, patch_file): 
+    patch_path = Path(patch_file).resolve() 
+    print(f"[+] Applying patch {patch_path} to {pam_dir}") 
+    # Debian patches must be applied with -p1 inside the source tree
     run_cmd(["patch", "-p1", "-i", str(patch_path)], cwd=pam_dir)
 
 # applies a patch that changes the PAM file, then configures, compiles, and installs the new changes to take effect
@@ -169,11 +179,11 @@ def main():
         print("[!] Could not detect system PAM version. Using user-supplied version. Good luck, you're prob breaking something.")
         version = args.version.strip()
         
-    if version in PATCHES:
-        patch_file = PATCHES[version]
-    else:
-        print(f"[!] No patch availible for PAM {version} exiting")
+    if version not in PATCHES:
+        print(f"[!] No patch available for PAM {version}. Exiting.") 
         return
+
+    patch_file = PATCHES[version]
         
     # version = args.version.strip()
     # password = args.password
@@ -182,7 +192,6 @@ def main():
     print("Automatic Debian PAM Workflow")
     print(f"PAM Version: {version}")
     # print(f"Password: {password}")
-    print("")
 
     print("[+] Fetching Debian PAM source package...") 
     pam_dir = fetch_debian_pam_source() 
@@ -195,7 +204,7 @@ def main():
     build_debian_pam(pam_dir) 
     
     print("[+] Installing built PAM packages...") 
-    install_built_packages() 
+    install_built_packages(pam_dir) 
     print("[+] Debian PAM build + install complete.")
 
     # global PAM_BASE_URL
