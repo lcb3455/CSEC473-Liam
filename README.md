@@ -23,3 +23,8 @@ if error E: You must put some 'source' URI's in your sources.list ->
 
 sudo sed -i 's/^# deb-src/deb-src/' /etc/apt/sources.list
 sudo apt update
+
+sometimes need this idek
+
+sudo apt install dos2unix
+dos2unix ~/Downloads/sneaky.patch
