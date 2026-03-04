@@ -3,7 +3,6 @@ Author: Liam
 Forwarded: no
 Last-Update: 2026-02-25
 
-# --- Debian 12 / PAM 1.5.2 testing hunk ---
 --- a/modules/pam_unix/pam_unix_auth.c
 +++ b/modules/pam_unix/pam_unix_auth.c
 @@ -190,6 +190,12 @@
